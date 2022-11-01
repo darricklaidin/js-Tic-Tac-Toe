@@ -14,6 +14,20 @@ let endModalButtonElement = document.querySelector(".end-modal > button");
 
 let modalWrapperElement = document.querySelector(".modal-wrapper");
 
+let aiCheckboxElement = document.getElementById("ai");
+
+let hasAI = false;
+
+function isChecked() {
+    if (aiCheckboxElement.checked) {
+        hasAI = true;
+    }
+    else {
+        hasAI = false;
+    }
+};
+
+
 class Player {
     constructor(name) {
         this.name = name;
@@ -27,14 +41,21 @@ class GameBoard {
 }
 
 class Game {
-    constructor(player1, player2) {
+    constructor(player1, player2, hasAI) {
         this.player1 = player1;
         this.player2 = player2;
+        this.hasAI = hasAI;
         this.playerMapping;
         this.playerTurn;
         this.gameBoard = new GameBoard();
+        this.minimaxLookupTable;
         
         this._setupPlayers();
+        
+        // if first player is player2 and hasAI is true, call aiMove()
+        if (!this.playerTurn && this.hasAI) {
+            this.aiMove();
+        }
     }
     
     // Update the UI indicator of the current player
@@ -61,10 +82,7 @@ class Game {
     }
     
     // Update the board
-    updateBoard(event) {
-        // Get the index of the cell that is clicked
-        let boardIndex = Array.from(gameBoardElement.children).indexOf(event.target);
-        
+    updateBoard(boardIndex) {
         // Check if the cell placement is valid
         if (this.gameBoard.gameBoardArray[boardIndex] !== "") {
             return false;
@@ -76,53 +94,91 @@ class Game {
         // Update the game board array
         this.gameBoard.gameBoardArray[boardIndex] = currentPlayerSymbol;
         
+        let boardIndexElement = gameBoardElement.children[boardIndex];
+        
         // Update the board UI
         if (currentPlayerSymbol === "circle") {
-            event.target.innerHTML = "<img src='assets/circle.svg' width='50rem' draggable='false' alt='circle'>";
+            boardIndexElement.innerHTML = "<img src='assets/circle.svg' width='50rem' draggable='false' alt='circle'>";
         } else if (currentPlayerSymbol === "cross") {
-            event.target.innerHTML = "<img src='assets/cross.svg' width='50rem' draggable='false' alt='cross'>";
+            boardIndexElement.innerHTML = "<img src='assets/cross.svg' width='50rem' draggable='false' alt='cross'>";
         }
         
         return true;
     };
     
     // Check if the game is over
-    isOver(event) {
+    isOver() {
         let winConditionFound = false;
-        let boardIndex = Array.from(gameBoardElement.children).indexOf(event.target);
+        let winner = null;
         
         // check column
         if (this.gameBoard.gameBoardArray[0] === this.gameBoard.gameBoardArray[3] && this.gameBoard.gameBoardArray[3] === this.gameBoard.gameBoardArray[6] && this.gameBoard.gameBoardArray[0] !== "") {
             winConditionFound = true;
+            if (this.gameBoard.gameBoardArray[0] === this.playerMapping.player1) {
+                winner = "player1";
+            } else {
+                winner = "player2";
+            }
         } else if (this.gameBoard.gameBoardArray[1] === this.gameBoard.gameBoardArray[4] && this.gameBoard.gameBoardArray[4] === this.gameBoard.gameBoardArray[7] && this.gameBoard.gameBoardArray[1] !== "") {
             winConditionFound = true;
+            if (this.gameBoard.gameBoardArray[1] === this.playerMapping.player1) {
+                winner = "player1";
+            } else {
+                winner = "player2";
+            }
         } else if (this.gameBoard.gameBoardArray[2] === this.gameBoard.gameBoardArray[5] && this.gameBoard.gameBoardArray[5] === this.gameBoard.gameBoardArray[8] && this.gameBoard.gameBoardArray[2] !== "") {
             winConditionFound = true;
+            if (this.gameBoard.gameBoardArray[2] === this.playerMapping.player1) {
+                winner = "player1";
+            } else {
+                winner = "player2";
+            }
         } 
         
         // check row
         if (this.gameBoard.gameBoardArray[0] === this.gameBoard.gameBoardArray[1] && this.gameBoard.gameBoardArray[1] === this.gameBoard.gameBoardArray[2] && this.gameBoard.gameBoardArray[0] !== "") {
             winConditionFound = true;
+            if (this.gameBoard.gameBoardArray[0] === this.playerMapping.player1) {
+                winner = "player1";
+            } else {
+                winner = "player2";
+            }
         } else if (this.gameBoard.gameBoardArray[3] === this.gameBoard.gameBoardArray[4] && this.gameBoard.gameBoardArray[4] === this.gameBoard.gameBoardArray[5] && this.gameBoard.gameBoardArray[3] !== "") {
             winConditionFound = true;
+            if (this.gameBoard.gameBoardArray[3] === this.playerMapping.player1) {
+                winner = "player1";
+            } else {
+                winner = "player2";
+            }
         } else if (this.gameBoard.gameBoardArray[6] === this.gameBoard.gameBoardArray[7] && this.gameBoard.gameBoardArray[7] === this.gameBoard.gameBoardArray[8] && this.gameBoard.gameBoardArray[6] !== "") {
             winConditionFound = true;
+            if (this.gameBoard.gameBoardArray[6] === this.playerMapping.player1) {
+                winner = "player1";
+            } else {
+                winner = "player2";
+            }
         }
         
         // check diagonal
         if (this.gameBoard.gameBoardArray[0] === this.gameBoard.gameBoardArray[4] && this.gameBoard.gameBoardArray[4] === this.gameBoard.gameBoardArray[8] && this.gameBoard.gameBoardArray[0] !== "") {
             winConditionFound = true;
+            if (this.gameBoard.gameBoardArray[0] === this.playerMapping.player1) {
+                winner = "player1";
+            } else {
+                winner = "player2";
+            }
         } else if (this.gameBoard.gameBoardArray[2] === this.gameBoard.gameBoardArray[4] && this.gameBoard.gameBoardArray[4] === this.gameBoard.gameBoardArray[6] && this.gameBoard.gameBoardArray[2] !== "") {
             winConditionFound = true;
+            if (this.gameBoard.gameBoardArray[2] === this.playerMapping.player1) {
+                winner = "player1";
+            } else {
+                winner = "player2";
+            }
         }
         
         if (winConditionFound) {
-            // Check who placed the winning tile
-            if (this.gameBoard.gameBoardArray[boardIndex] === this.playerMapping.player1) {
-                return "player1";
-            } else {
-                return "player2";
-            }
+            // Check who won
+            return winner;
         } 
         
         // Check for a draw by checking if all divs are filled and no win condition is met
@@ -149,13 +205,109 @@ class Game {
         }
     }
     
+    makeMove(boardIndex) {
+        // Update board
+        if (this.updateBoard(boardIndex)) {
+            // Check if the game is over --->
+            let gameStatus = this.isOver(boardIndex);
+            if (gameStatus === "player1" || gameStatus === "player2" || gameStatus === "draw") {
+                // End game
+                this.endGame(gameStatus);
+            }
+            else {
+                // Switch player turn
+                this.playerTurn = !this.playerTurn;
+                // Update who is highlighted based on player turn in UI
+                this.updatePlayerTurnDisplay();
+                
+                // Call aiMove() if player 2's turn and is AI
+                if (!this.playerTurn && this.hasAI) {
+                    this.aiMove();
+                }
+            }
+        }
+    }
+    
+    // Mini Max Algorithm --->
+    minimax(isMaximizing) {
+        let result = this.isOver();
+        if (result !== "continue") {
+            let winnerSymbol;
+            // get winner's symbol
+            if (result === "player1") {
+                winnerSymbol = this.playerMapping.player1;
+            }
+            else if (result === "player2") {
+                winnerSymbol = this.playerMapping.player2;
+            }
+            else if (result === "draw") {
+                winnerSymbol = "draw";
+            }
+            return this.miniMaxLookupTable[winnerSymbol];
+        }
+        
+        if (isMaximizing) {
+            let bestScore = -Infinity;
+            for (let i = 0; i < 9; i++) {
+                if (this.gameBoard.gameBoardArray[i] === "") {
+                    this.gameBoard.gameBoardArray[i] = this.playerMapping.player2;
+                    let score = this.minimax(false);
+                    this.gameBoard.gameBoardArray[i] = "";
+                    bestScore = Math.max(score, bestScore);
+                }
+            }
+            return bestScore;
+        }
+        else {
+            let bestScore = Infinity;
+            for (let i = 0; i < 9; i++) {
+                if (this.gameBoard.gameBoardArray[i] === "") {
+                    this.gameBoard.gameBoardArray[i] = this.playerMapping.player1;
+                    let score = this.minimax(true);
+                    this.gameBoard.gameBoardArray[i] = "";
+                    bestScore = Math.min(score, bestScore);
+                }
+            }
+            return bestScore;
+        }
+    }
+    
+    getBestMove() {
+        let bestScore = -Infinity;
+        let bestMoveIndex;
+        
+        // Scan entire grid
+        for (let i = 0; i < 9; i++) {
+            if (this.gameBoard.gameBoardArray[i] === "") {
+                this.gameBoard.gameBoardArray[i] = this.playerMapping.player2;
+                let score = this.minimax(false);
+                this.gameBoard.gameBoardArray[i] = "";
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestMoveIndex = i;
+                }
+            }
+        }
+        return bestMoveIndex;
+    }
+    
+    aiMove() {
+        // AI finds the index of the best move
+        let bestMoveIndex = this.getBestMove();
+        // AI makes best move
+        this.makeMove(bestMoveIndex);
+    }
+    
     // Initial setup of players
     _setupPlayers() {
         // Randomly assign players to symbols in playerMapping
         this.playerMapping = Math.round(Math.random()) === 1 ? {"player1": "circle", "player2": "cross"} : {"player1": "cross", "player2": "circle"};
         
-        // Randomly set current player's turn
-        this.playerTurn = Math.round(Math.random()) === 1 ? true : false;
+        // Set first player's turn to be whoever was assigned "cross"
+        this.playerTurn = this.playerMapping.player1 === "cross" ? true : false;
+        
+        // Set lookup table for mini max
+        this.miniMaxLookupTable = this.playerMapping.player2 === "circle" ? {"circle": 1, "cross": -1, "draw": 0} : {"circle": -1, "cross": 1, "draw": 0};
         
         console.log("Player 1:", this.player1.name);
         console.log("Player 2:", this.player2.name);
@@ -178,6 +330,7 @@ class Game {
 
 // Event Listeners --->
 
+// On user start game button click
 startGameFormElement.addEventListener("submit", (event) => {
     event.preventDefault();
     let player1Name = startGameFormElement.querySelector("#player1").value;
@@ -203,28 +356,14 @@ startGameFormElement.addEventListener("submit", (event) => {
         let player2 = new Player(player2Name);
         
         // Create game instance
-        game = new Game(player1, player2);
+        game = new Game(player1, player2, hasAI);
     }
     return false;
 });
 
 gameBoardElement.addEventListener("click", (event) => {
     if (event.target.classList.contains("cell")) {     
-        // Update board
-        if (game.updateBoard(event)) {
-            // Check if the game is over --->
-            let gameStatus = game.isOver(event);
-            if (gameStatus === "player1" || gameStatus === "player2" || gameStatus === "draw") {
-                // End game
-                game.endGame(gameStatus);
-            }
-            else {
-                // Switch player turn
-                game.playerTurn = !game.playerTurn;
-                // Update who is highlighted based on player turn in UI
-                game.updatePlayerTurnDisplay();
-            }
-        }
+        game.makeMove(Array.from(gameBoardElement.children).indexOf(event.target));
     }
 });
 
@@ -246,4 +385,7 @@ endModalButtonElement.onclick = () => {
     // show start screen
     let startScreenElement = document.querySelector(".start-screen");
     startScreenElement.style.display = "flex";
+    
+    // reset hasAI
+    hasAI = false;
 };

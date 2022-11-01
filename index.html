@@ -7,6 +7,7 @@
     <title>Tic Tac Toe</title>
     <link rel="stylesheet" href="style.css">
     <script src="game.js" defer></script>
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
 </head>
 <body>
     <div class="start-screen">
@@ -14,10 +15,18 @@
         <div class="player-names-modal">
             <h2>Player Names</h2>
             <form>
-                <label for="player1">Player 1</label>
-                <input type="text" id="player1" name="player1" placeholder="Player 1" maxlength="12" required autocomplete="off">
-                <label for="player2">Player 2</label>
-                <input type="text" id="player2" name="player2" placeholder="Player 2" maxlength="12" required autocomplete="off">
+                <div class="form-input-text-div">
+                    <label for="player1">Player 1</label>
+                    <input type="text" id="player1" name="player1" placeholder="Player 1" maxlength="12" required autocomplete="off">
+                </div>
+                <div class="form-input-text-div">
+                    <label for="player2">Player 2</label>
+                    <input type="text" id="player2" name="player2" placeholder="Player 2" maxlength="12" required autocomplete="off">
+                </div>
+                <div class="form-input-checkbox-div">
+                    <label for="ai">Set Player 2 as AI</label>
+                    <input type="checkbox" id="ai" name="ai">
+                </div>
                 <button type="submit">Start</button>
             </form>
         </div>

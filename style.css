@@ -92,9 +92,8 @@ main {
     align-items: center;
     width: 100%;
     height: 100%;
-    gap: 5rem;
-    padding: 0 5rem;
-    /* border: 1px solid purple; */
+    gap: 2vw;
+    padding: 0 10vw;
     background-color: #C8D5B9;
 }
 
@@ -102,12 +101,13 @@ main {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     background-color: #68B0AB;
-    gap: 5px;
-    padding: 5px;
+    gap: min(1%, 5px);
+    padding: min(1%, 5px);
     justify-content: center;
     align-items: center;
-    width: 500px;
     user-select: none;
+    width: min(700px, 95vw);
+    aspect-ratio: 1/1;
 }
 
 .cell {
@@ -119,20 +119,28 @@ main {
     aspect-ratio: 1/1;
 }
 
+.cell img {
+    width: 70%;
+    height: 70%;
+}
+
 .players {
     background-color: rgb(250, 250, 250);
+    width: min(250px, 50vw);
 }
 
 .players div {
     display:flex;
     justify-content: space-between;
     align-items: center;
-    gap: 2rem;
     border: 2px solid black;
     margin: -2px 0 0 0px;  /* collapse border */
-    padding: 1rem 2rem;
-    font-size: 2.5rem;
+    padding: .1rem .5rem;
+    font-size: min(2vw, 1.5rem);
     font-family: 'Permanent Marker', cursive;
+}
+.players div img {
+    width: 10%
 }
 
 .current-player {
